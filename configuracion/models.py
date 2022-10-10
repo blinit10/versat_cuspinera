@@ -4,8 +4,6 @@ from django.db import models
 
 # Create your models here.
 from django.utils.safestring import mark_safe
-
-
 class DatosOrganizacion(models.Model):
     codigo = models.CharField(max_length=255, verbose_name='Código')
     nombre = models.CharField(max_length=255)
@@ -17,6 +15,10 @@ class DatosOrganizacion(models.Model):
     contador = models.CharField(max_length=255)
     nit = models.CharField(max_length=255)
     ircc = models.CharField(max_length=255)
+    #cfg for connecting with the diplomarket api
+    key = models.CharField(max_length=800)
+    server = models.CharField(max_length=800)
+    test = models.BooleanField(verbose_name='Entorno de prueba')
 
     def __str__(self):
         return '{}'.format(self.nombre)

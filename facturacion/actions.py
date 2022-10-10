@@ -4,12 +4,12 @@ import requests
 from django.contrib import messages
 from django.contrib import admin
 
+from configuracion.models import DatosOrganizacion
 from inventario.models import Producto
 
 
 @admin.action(description='Aprobar facturas')
 def aprove(modeladmin, request, queryset):
-    headers = {'Authorization': 'Token 2a95bf33d7409826929ab18c3891b069ef7c7019'}
     data = {}
     for bill in queryset:
         if not bill.aprobada:
@@ -26,7 +26,15 @@ def aprove(modeladmin, request, queryset):
 
             for product in bill.productos_factura.all():
                 data[str(product.producto.sku)] = product.cantidad
-            response = requests.post('http://127.0.0.1:9000/backend/inventario/', headers=headers, data=data)
+            if DatosOrganizacion.objects.all()[0].test:
+                headers = {'Authorization': 'Token {}'.format(DatosOrganizacion.objects.all()[0].llave)}
+                response = requests.post('http://127.0.0.1:9000/backend/inventario/', headers=headers,
+                                         data=data)
+            else:
+                headers = {'Authorization': 'Token 07e3d4a91f7098ad03ab59eede7f5f29a2728a20'}
+                response = requests.post(
+                    '{}/backend/inventario/'.format(DatosOrganizacion.objects.all()[0].server),
+                    headers=headers, data=data)
             json_results = response.json()
             bill.backup_bill = str(json_results['pk'])
             try:
@@ -50,11 +58,18 @@ def aprove(modeladmin, request, queryset):
 
 @admin.action(description='Revertir facturas')
 def revert(modeladmin, request, queryset):
-    headers = {'Authorization': 'Token 2a95bf33d7409826929ab18c3891b069ef7c7019'}
+
     for bill in queryset:
         if bill.aprobada:
-            response = requests.post('http://127.0.0.1:9000/backend/inventario/revertir/', headers=headers,
-                                     data={'flujo': int(bill.backup_bill)})
+            if DatosOrganizacion.objects.all()[0].test:
+                headers = {'Authorization': 'Token {}'.format(DatosOrganizacion.objects.all()[0].llave)}
+                response = requests.post('http://127.0.0.1:9000/backend/inventario/revertir/', headers=headers,
+                                         data={'flujo': int(bill.backup_bill)})
+            else:
+                headers = {'Authorization': 'Token 07e3d4a91f7098ad03ab59eede7f5f29a2728a20'}
+                response = requests.post('{}/backend/inventario/revertir/'.format(DatosOrganizacion.objects.all()[0].server),
+                                        headers=headers, data={'flujo': int(bill.backup_bill)})
+
             bill.faltantes = bill.faltantes + '\n ' + str(datetime.now().date()) + ' ' + str(
                 datetime.now().hour) + ':' + str(datetime.now().minute) + ':' + str(datetime.now().second) \
                              + ' Se revirtió esta factura \n'

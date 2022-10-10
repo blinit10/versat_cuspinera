@@ -3,15 +3,18 @@ from django.db import transaction
 from django.shortcuts import redirect, render
 import requests
 
+from configuracion.models import DatosOrganizacion
 from inventario.models import Producto
 
 
 @transaction.atomic
 def actualizar_sistema(request):
-    # headers = {'Authorization': 'Token 07e3d4a91f7098ad03ab59eede7f5f29a2728a20'}
-    # response = requests.get('https://www.diplomarket.com/backend/inventario/', headers=headers)
-    headers = {'Authorization': 'Token 2a95bf33d7409826929ab18c3891b069ef7c7019'}
-    response = requests.get('http://127.0.0.1:9000/backend/inventario/', headers=headers)
+    if DatosOrganizacion.objects.all()[0].test:
+        headers = {'Authorization': 'Token {}'.format(DatosOrganizacion.objects.all()[0].llave)}
+        response = requests.get('http://127.0.0.1:9000/backend/inventario/', headers=headers)
+    else:
+        headers = {'Authorization': 'Token 07e3d4a91f7098ad03ab59eede7f5f29a2728a20'}
+        response = requests.get('{}/backend/inventario/'.format(DatosOrganizacion.objects.all()[0].server), headers=headers)
     json_products = response.json()
     actual_products = []
     for json_product in json_products['data']:

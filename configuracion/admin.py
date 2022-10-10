@@ -37,6 +37,8 @@ class DatosOrganizacionAdmin(admin.ModelAdmin):
     list_display_links = ['miniatura', 'nombre', 'organismmo', 'telefono']
     readonly_fields = ['miniatura', ]
     fieldsets = (
+        ('Sistema', {
+            'fields': ('key', 'server', 'test')}),
         ('Información Básica', {
             'fields': (
                 'codigo', 'nombre', 'organismmo', 'telefono', 'direccion')}),
@@ -48,6 +50,11 @@ class DatosOrganizacionAdmin(admin.ModelAdmin):
             'fields': ('logotipo', 'miniatura')}),
 
     )
+
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.is_superuser:
+            return self.readonly_fields + ['key', 'server', 'test']
+        return self.readonly_fields
 
 
 class UnidadAdmin(admin.ModelAdmin):
