@@ -1,0 +1,41 @@
+{% extends 'admin/change_form.html' %}
+{% load static %}
+{% block content %}
+    <div id="message" class="is-hidden"></div>
+    {{ block.super }}
+{% endblock %}
+{% block admin_change_form_document_ready %}
+    {{ block.super }}
+{% endblock %}
+{% block submit_buttons_bottom %}
+
+    <div class="submit-row">
+        <div style="float: left; margin: 0">
+            <select style="width: 280%" name="trabajador" required="" id="id_trabajador">
+                <option value="Ninguno" selected="">---------</option>
+                {% for trabajador in trabajadores %}
+                    <option value="{{ trabajador.codigo }}">{{ trabajador }}</option>
+                {% endfor %}
+            </select></div>
+        <input style="" type="button" onclick="crearTrabajador()" value="Crear custodio a partir de este trabajador" name="_trabajdor"/>
+    </div>
+    {{ block.super }}
+    <script>
+        function crearTrabajador() {
+            var codigo = $('#id_trabajador').val()
+            var unidad = $('#id_unidad').val()
+            if (codigo === 'Ninguno'){
+                alert("Seleccione un trabajador")
+                return
+            }
+
+            if (unidad === ''){
+                alert("Seleccione una unidad")
+                return
+            }
+            window.location.replace("/configuracion/custodio/" + codigo + '/' + unidad)
+
+        }
+    </script>
+
+{% endblock %}

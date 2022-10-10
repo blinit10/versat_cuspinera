@@ -1,0 +1,15 @@
+{% extends 'admin/change_list.html' %}
+{% load static %}
+{% block object-tools %}
+    <ul class="object-tools">
+        <li>
+            <a href="{% url 'actualizar_sistema' %}" class="addlink">
+                Actualizar sistema
+            </a>
+        </li>
+    </ul>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
