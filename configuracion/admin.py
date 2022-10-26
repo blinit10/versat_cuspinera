@@ -33,22 +33,21 @@ class SucursalAdmin(admin.ModelAdmin):
 
 
 class DatosOrganizacionAdmin(admin.ModelAdmin):
-    list_display = ['miniatura', 'nombre', 'organismmo', 'telefono']
-    list_display_links = ['miniatura', 'nombre', 'organismmo', 'telefono']
+    list_display = ['miniatura', 'nombre', 'organismo', 'telefono']
+    list_display_links = ['miniatura', 'nombre', 'organismo', 'telefono']
     readonly_fields = ['miniatura', ]
     fieldsets = (
         ('Sistema', {
-            'fields': ('key', 'server', 'test')}),
+            'fields': ('key', 'server', 'test', ('bill_format', 'bill_number'), 'bills_dir')}),
         ('Información Básica', {
             'fields': (
-                'codigo', 'nombre', 'organismmo', 'telefono', 'direccion')}),
+                'codigo', 'nombre', 'organismo', 'telefono', 'direccion')}),
         ('Personas de Interés', {
             'fields': ('presidente', 'contador')}),
         ('Otros', {
             'fields': (('nit', 'ircc'),)}),
         ('Multimedia', {
             'fields': ('logotipo', 'miniatura')}),
-
     )
 
     def get_readonly_fields(self, request, obj=None):

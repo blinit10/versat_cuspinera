@@ -7,7 +7,7 @@ from django.utils.safestring import mark_safe
 class DatosOrganizacion(models.Model):
     codigo = models.CharField(max_length=255, verbose_name='Código')
     nombre = models.CharField(max_length=255)
-    organismmo = models.CharField(max_length=255)
+    organismo = models.CharField(max_length=255)
     telefono = models.CharField(max_length=255, null=True, blank=True, verbose_name='Teléfono', help_text='Opcional')
     direccion = models.TextField(verbose_name='Dirección')
     logotipo = models.ImageField(upload_to='imagenes/')
@@ -19,6 +19,9 @@ class DatosOrganizacion(models.Model):
     key = models.CharField(max_length=800)
     server = models.CharField(max_length=800)
     test = models.BooleanField(verbose_name='Entorno de prueba')
+    bill_format = models.CharField(max_length=255, verbose_name='Formato para nombrar facturas')
+    bill_number = models.IntegerField(default=0, verbose_name='Número de factura')
+    bills_dir = models.CharField(max_length=500, verbose_name='Dirección para guardar las facturas')
 
     def __str__(self):
         return '{}'.format(self.nombre)

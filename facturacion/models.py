@@ -23,17 +23,24 @@ class Talon(models.Model):
 
 
 class Factura(models.Model):
+    # CONCEPTO_CHOICES = (
+    #     ('001', 'Business to business'),
+    #     ('002', 'Online'),
+    #     ('003', 'Pago anticipado'),
+    #     ('004', 'Pago en el exterior'),
+    # )
     CONCEPTO_CHOICES = (
-        ('entidades', 'Entidades'),
-        ('otras', 'Otras Formas de GE'),
-        ('naturales', 'Personas Naturales'),
-        ('fuera', 'Fuera del País'),
+        ('001', 'Entidades'),
+        ('002', 'Otras Formas de GE'),
+        ('003', 'Personas Naturales'),
+        ('004', 'Fuera del País'),
     )
     talon = models.ForeignKey(Talon, on_delete=models.CASCADE, related_name='facturas_talon')
     entidad = models.ForeignKey('configuracion.Entidad', on_delete=models.CASCADE, related_name='facturas_entidad')
     moneda = models.ForeignKey('configuracion.Moneda', on_delete=models.CASCADE, related_name='facturas_moneda')
     tasa = models.FloatField(default=24)
     fecha = models.DateField(default=datetime.now)
+    concepto = models.CharField(max_length=255, default='004', choices=CONCEPTO_CHOICES)
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
     comercial = models.ForeignKey('codificadores.Comercial', on_delete=models.CASCADE,
                                   related_name='facturas_comercial')
@@ -51,6 +58,7 @@ class Factura(models.Model):
         default="------------------------------------------------------------------------------"
                 "------------------------------------------------------------------------")
     nota = models.TextField(default="", null=True, blank=True)
+    exportada_como = models.CharField(max_length=500, null=True, blank=True, editable=False)
 
     def __str__(self):
         return '{}'.format(self.uuid)
@@ -76,8 +84,8 @@ class ComponenteProductoFactura(models.Model):
     cantidad = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     recargo = models.FloatField(default=0)
     descuento = models.FloatField(default=0)
-    precio = models.FloatField(null=True, blank=True)
-    importe = models.FloatField(default=0)
+    precio = models.FloatField(null=True, blank=True, verbose_name='Precio')
+    importe = models.FloatField(default=0, verbose_name='Importe')
     settled_import = models.FloatField(default=0)
 
     def __str__(self):
@@ -86,14 +94,11 @@ class ComponenteProductoFactura(models.Model):
     def save(self, *args, **kwargs):
         self.factura.total = self.factura.total - self.settled_import
         self.factura.subtotal_productos = self.factura.subtotal_productos - self.settled_import
-        print(self.factura.subtotal_productos)
-        subtotal = (self.importe + (self.importe * self.recargo / 100) - self.descuento) * self.cantidad
+        subtotal = (self.precio + (self.precio * self.recargo / 100) - self.descuento) * self.cantidad
         self.factura.total = self.factura.total + subtotal
         self.factura.subtotal_productos = self.factura.subtotal_productos + subtotal
-        print(self.factura.subtotal_productos)
-        self.precio = self.producto.precio
+        self.importe = subtotal
         self.settled_import = subtotal
-        print(self.settled_import)
         super(ComponenteProductoFactura, self).save(*args, **kwargs)
         self.factura.save()
         super(ComponenteProductoFactura, self).save(*args, **kwargs)

@@ -1,10 +1,13 @@
+import os
 from datetime import datetime
+from pathlib import Path
 
 import requests
 from django.contrib import messages
 from django.contrib import admin
 
-from configuracion.models import DatosOrganizacion
+from codificadores.models import CuentaBancaria
+from configuracion.models import DatosOrganizacion, Moneda
 from inventario.models import Producto
 
 
@@ -21,7 +24,7 @@ def aprove(modeladmin, request, queryset):
             for service in bill.servicios_factura.all():
                 data['nota'] = data['nota'] + '\n ' + str(
                     service.cantidad) + 'x ' + service.servicio.descripcion + ' - ' \
-                                                                              '' + str(service.importe) + ' ' + str(
+                                                                              '' + str(service.precio) + ' ' + str(
                     service.factura.moneda)
 
             for product in bill.productos_factura.all():
@@ -81,3 +84,91 @@ def revert(modeladmin, request, queryset):
             bill.save()
     messages.add_message(request, messages.INFO,
                          'Se revirtieron las facturas seleccionadas')
+
+
+def excel_date(date1):
+    temp = datetime(1899, 12, 30)
+    delta = date1 - temp
+    return float(delta.days) + (float(delta.seconds) / 86400)
+
+@admin.action(description='Exportar facturas')
+def export(modeladmin, request, queryset):
+    data = {}
+    for bill in queryset:
+        if bill.exportada_como is None:
+            cfg = DatosOrganizacion.objects.all()[0]
+            cfg.bill_number = cfg.bill_number + 1
+            cfg.save()
+            numer_of_zeroes = ''
+            for i in range(7 - len(str(cfg.bill_number))):
+                numer_of_zeroes = numer_of_zeroes + '0'
+            bill_name = cfg.bill_format + str(numer_of_zeroes) \
+                        + str(cfg.bill_number)
+            dir_path = Path('{}'.format(cfg.bills_dir))
+            if not dir_path.is_dir():
+                if not os.path.exists('{}'.format(dir_path)):
+                    os.mkdir('{}'.format(dir_path))
+            with open(dir_path.joinpath(dir_path.joinpath(bill_name)), 'w') as f:
+                fecha = str(excel_date(datetime(year=bill.fecha.year, month=bill.fecha.month,
+                                                day=bill.fecha.day, hour=0, minute=0, second=0)))
+                if bill.moneda.tipo == 'contable':
+                    mc_currency = Moneda.objects.filter(tipo='contable')[0]
+                    om_currency = Moneda.objects.filter(tipo='otras')[0]
+                    mc_account = ' '
+                    om_account = ' '
+                else:
+                    mc_currency = ' '
+                    om_currency = ' '
+                    mc_account = CuentaBancaria.objects.filter(moneda=mc_currency)[0].cuenta
+                    om_account = CuentaBancaria.objects.filter(moneda=om_currency)[0].cuenta
+                f.write("Numero={} \n".format(bill_name))
+                f.write("MC={} \n".format(mc_currency.nombre))
+                f.write("OM={} \n".format(om_currency.nombre))
+                f.write("Fecha={} \n".format(fecha[:len(fecha) - 2]))
+                f.write("Entidad={} \n".format(bill.entidad.codigo))
+                f.write("Concepto={} \n".format(bill.concepto))
+                f.write("Comercial={} \n".format(bill.comercial.nombres_apellidos))
+                f.write("CtaBancoMC={} \n".format(mc_account))
+                f.write("CtaBancoOM={} \n".format(om_account))
+                f.write("Forma={} \n".format(bill.forma.forma))
+                f.write("Operacion={} \n".format(bill.operacion.descripcion))
+                f.write("Observacion={} \n".format(bill.nota))
+                f.write("MA={} \n".format(' '))
+                f.write("CtoArancel={} \n".format(' '))
+                f.write("PorcientoAra={} \n".format('0'))
+                f.write("Talon={} \n".format(bill.talon.numero_serie))
+                f.write("Contrato={} \n".format(''))
+                f.write("VtaCadena={} \n".format('0'))
+                f.write("NomHecho={} \n".format(bill.comercial.nombres_apellidos))
+                f.write("CargoHecho={} \n".format(bill.comercial.cargo))
+                f.write("CIHecho={} \n".format(bill.comercial.ci))
+                f.write("NomJA={} \n".format(' '))
+                f.write("CIJA={} \n".format(' '))
+                f.write("NomTra={} \n".format(' '))
+                f.write("Chapa={} \n".format(' '))
+                f.write("LicTra={} \n".format(' '))
+                f.write("CITra={} \n".format(' '))
+                f.write("CargoCliente={} \n".format(' '))
+                f.write("CICliente={} \n".format(' '))
+                f.write("[Propiedades] \n")
+                f.write("\n")
+                f.write("[Detalle] \n")
+                for product in bill.productos_factura.all():
+                    f.write(
+                        "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}\n".format(product.almacen.codigo, product.concepto,
+                                                                             product.producto.sku, product.producto.um,
+                                                                             product.cantidad, product.recargo,
+                                                                             product.descuento, 0, 0, 0,
+                                                                             product.importe,
+                                                                             '', product.precio, 0))
+                for service in bill.servicios_factura.all():
+                    f.write("{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}\n".format('S', service.concepto,
+                                                                                 service.servicio.codigo,
+                                                                                 service.servicio.um,
+                                                                                 service.cantidad, service.recargo,
+                                                                                 service.descuento, 0, 0, 0,
+                                                                                 service.importe,
+                                                                                 '', 0, 0))
+                f.write("[PieFirma] \n")
+            bill.exportada_como = bill_name
+            bill.save()

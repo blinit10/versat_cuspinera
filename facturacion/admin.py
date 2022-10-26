@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # InLines
-from facturacion.actions import aprove, revert
+from facturacion.actions import aprove, revert, export
 from facturacion.models import Talon, ComponenteProductoFactura, ComponenteServicioFactura, Factura
 
 
@@ -9,15 +9,16 @@ class ComponenteProductoFacturaInLine(admin.StackedInline):
     model = ComponenteProductoFactura
     extra = 0
     min_num = 1
-    readonly_fields = ['precio', ]
+    readonly_fields = ['importe', ]
     fieldsets = (
         ('Información Básica', {
             'fields': (
                 'almacen', 'producto', ('concepto', 'cantidad'))}),
         ('Información Contable', {
             'fields': (
-                ('recargo', 'descuento',), ('precio', 'importe'),)}),
+                ('recargo', 'descuento',), ('importe', 'precio'),)}),
     )
+
 
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.aprobada is True:
@@ -48,13 +49,13 @@ class ComponenteServicioFacturaInLine(admin.StackedInline):
 # fin de ModelAdmin
 class FacturaAdmin(admin.ModelAdmin):
     list_display = ['uuid', 'entidad', 'moneda', 'cuenta', 'forma', 'total', 'subtotal_productos', 'subtotal_servicios',
-                    'aprobada']
+                    'aprobada', 'exportada_como']
     list_display_links = ['uuid', 'entidad', 'moneda', 'cuenta', 'forma', 'total', 'subtotal_productos',
                           'subtotal_servicios', 'aprobada']
     list_filter = ['talon', 'entidad', 'moneda', 'fecha', 'comercial', 'cuenta', 'forma', 'operacion', 'aprobada']
     readonly_fields = ['total', 'subtotal_productos', 'subtotal_servicios', 'aprobada', 'faltantes']
     inlines = [ComponenteProductoFacturaInLine, ComponenteServicioFacturaInLine]
-    actions = [aprove, revert]
+    actions = [aprove, revert, export]
 
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.aprobada is True:
