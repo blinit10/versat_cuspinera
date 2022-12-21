@@ -60,7 +60,6 @@ class FacturaAdmin(admin.ModelAdmin):
 
     def get_actions(self, request):
         actions = super(FacturaAdmin, self).get_actions(request)
-        print(actions)
         if not request.user.is_superuser:
             del actions['revert']
             del actions['export']

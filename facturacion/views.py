@@ -1,12 +1,7 @@
-import datetime
-
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 import cv2
-import numpy as np
-from time import sleep
-from tkinter import *
 from pyzbar import pyzbar
 
 # Create your views here.
