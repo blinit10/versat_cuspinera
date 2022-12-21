@@ -58,6 +58,14 @@ class FacturaAdmin(admin.ModelAdmin):
     inlines = [ComponenteProductoFacturaInLine, ComponenteServicioFacturaInLine]
     actions = [aprove, revert, export]
 
+    def get_actions(self, request):
+        actions = super(FacturaAdmin, self).get_actions(request)
+        print(actions)
+        if not request.user.is_superuser:
+            del actions['revert']
+            del actions['export']
+        return actions
+
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.aprobada is True:
             return ['talon', 'entidad', 'moneda', 'tasa', 'fecha', 'uuid', 'comercial', 'cuenta', 'forma', 'operacion',
