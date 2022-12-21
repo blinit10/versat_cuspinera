@@ -10,6 +10,7 @@ class ComponenteProductoFacturaInLine(admin.StackedInline):
     extra = 0
     min_num = 1
     readonly_fields = ['importe', ]
+    autocomplete_fields = ['producto',]
     fieldsets = (
         ('Información Básica', {
             'fields': (

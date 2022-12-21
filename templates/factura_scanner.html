@@ -1,0 +1,195 @@
+{% extends 'admin/base_site.html' %}
+{% block extrahead %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <style>
+        .loader {
+            border: 3px solid #f3f3f3; /* Light grey */
+            border-top: 3px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            animation: spin 2s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hide-loader {
+            display: none;
+        }
+
+        .cruz {
+            font-size: 25px;
+            cursor: pointer;
+            display: block;
+            position: relative;
+            left: 90%
+        }
+
+        .div-datos {
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: row;
+            align-content: stretch;
+            justify-content: space-between;
+        }
+        .div-datos{
+            display: inline-block;
+        }
+        .div-datos label, input, select{
+            margin-right: 30px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <form method="post" action="{% url 'facturar' %}">
+    {% csrf_token %}
+        <div style="font-size: 20px" id="contenedor-ruta-video">
+            <label for="label-ruta">Ruta de Video </label>
+            <input style="font-size: 20px; width: 600px" type="text" name="ruta" id="label-ruta"
+                   value="http://192.168.43.1:8080/video">
+        </div>
+        <br>
+        <hr>
+        <br>
+        <div class="div-datos">
+            <label for="ci">CI de Económica/ Contadora </label>
+            <input type="text" name="ci" id="ci"
+                   value="">
+            <label for="talon">Talón </label>
+            <select name="talon" id="talon">
+                {% for talon in talones %}
+                    <option value="{{ talon.numero_serie }}">{{ talon.descripcion }}</option>
+                {% endfor %}
+            </select>
+            <label for="entidad">Entidades </label>
+            <select name="entidad" id="entidad">
+                {% for entidad in entidades %}
+                    <option value="{{ entidad.codigo }}">{{ entidad.nombre }}</option>
+                {% endfor %}
+            </select>
+            <label for="moneda">Tasa: <span id="moneda-tasa"></span> Tipo: <span id="moneda-tipo"></span></label>
+            <select onchange="actualizar_moneda()" name="moneda" id="moneda">
+                {% for moneda in monedas %}
+                    <option onclick="" value="{{ moneda.siglas }}::{{ moneda.tasa }}::{{ moneda.tipo }}">{{ moneda.nombre }}</option>
+                {% endfor %}
+            </select>
+        <br>
+        <br>
+            <label for="fecha">Fecha </label>
+            <input type="date" name="fecha" id="fecha"
+                   value="">
+            <label for="cuenta-bancaria">Cuenta Bancaria </label>
+            <select name="cuenta-bancaria" id="cuenta-bancaria">
+                {% for cuenta in cuentas %}
+                    <option value="{{ cuenta.cuenta }}">{{ cuenta.cuenta }} - {{ cuenta.moneda }} - {{ cuenta.nombre }}</option>
+                {% endfor %}
+            </select>
+            <label for="forma">Forma de Pago </label>
+            <select name="forma" id="forma">
+                {% for forma in formas %}
+                    <option value="{{ forma.forma }}">{{ forma.forma }} - {{ forma.tipo }}</option>
+                {% endfor %}
+            </select>
+        <label for="operacion">Operación </label>
+            <select name="operacion" id="operacion">
+                {% for operacion in operaciones %}
+                    <option value="{{ operacion.pk }}">{{ operacion.descripcion }}</option>
+                {% endfor %}
+            </select>
+        <label for="almacen">Almacén </label>
+            <select name="almacen" id="almacen">
+                {% for almacen in almacenes %}
+                    <option value="{{ almacen.codigo }}">{{ almacen.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <br>
+        <hr>
+        <br>
+        <div class="row" style="display: inline-block">
+            <label for="cantidad">Cantidad: </label> <input type="number" value="1" min="1" max="99999"
+                                                            id="cantidad-global"
+                                                            name="cantidad">
+            <span style="cursor: pointer" onclick="escanear($('#label-ruta').val())">Escanear</span>
+
+        </div>
+        <div class="loader" id="loader">
+        </div>
+        <br>
+        <hr>
+        <br>
+        <div id="contenido">
+
+        </div>
+    <hr>
+    <input type="submit" value="Facturar">
+    </form>
+
+    <script>
+        var num_divs = 0
+        $('document').ready(function () {
+            $('#loader').addClass("hide-loader");
+        })
+
+        function actualizar_moneda() {
+            var conceptName = $('#moneda').find(":selected")
+            var tasa = $(conceptName).val().toString().split('::')[1]
+            var tipo = $(conceptName).val().toString().split('::')[2]
+            $('#moneda-tasa').html(parseFloat(tasa))
+            $('#moneda-tipo').html(tipo)
+        }
+
+        function actualizar_subtotal(upc, sufijo) {
+            var upc_real = upc.toString().replace('' + sufijo + '', '')
+            if (sufijo === '-precio-real') {
+                $('#' + upc_real + '-subtotal').html(parseFloat($('#' + upc).val()) * parseFloat($('#' + upc_real + '-cantidad').html()));
+            } else {
+                $('#' + upc_real + '-precio-real').val($('#' + upc).val());
+                $('#' + upc_real + '-subtotal').html(parseFloat($('#' + upc).val()) * parseFloat($('#' + upc_real + '-cantidad').html()));
+            }
+
+        }
+
+        function escanear(ruta) {
+            $('#loader').removeClass("hide-loader");
+            $.ajax({
+                url: '/facturacion/scanner/stream/',
+                data: {
+                    'ruta': ruta
+                },
+                success: function (response) {
+                    if (response['bar_code'] === '#!ERROR_CXRFS') {
+                        alert("Conexión con cámara no establecida")
+                        $('#loader').addClass("hide-loader");
+                    } else {
+                        $('#loader').addClass("hide-loader");
+                        var e = $('<div style="display:inline-block; float:left;border:1px dashed #CCCCCC; padding: 3px">' +
+                            '<span id="div-' + num_divs + '" class="cruz" onclick="$(this).parent().remove()">X</span>' +
+                            '<img src="https://www.diplomarket.com' + response['bar_code']['img'] + '" width="250px" height="250px">' +
+                            '<h1>' + response['bar_code']['nombre'] + '</h1>' +
+                            '<h1 id="' + response['bar_code']['upc'] + '-cantidad">' + $('#cantidad-global').val() + '</h1>' +
+                            '<input type="hidden" name="' + response['bar_code']['upc'] + '-cantidadinput" id="' + response['bar_code']['upc'] + '-cantidadinput" value="'+$('#cantidad-global').val()+'">' +
+                            '<input required type="radio" onclick="actualizar_subtotal($(this).attr(\'id\'), \'-online\')" name="' + response['bar_code']['upc'] + '-precio" id="' + response['bar_code']['upc'] + '-online" value="' + response['bar_code']['precio'] + '"/> Precio Online ' + response['bar_code']['precio'] +
+                            '<br><input required type="radio" onclick="actualizar_subtotal($(this).attr(\'id\'), \'-b2b\')" name="' + response['bar_code']['upc'] + '-precio" id="' + response['bar_code']['upc'] + '-b2b" value="' + response['bar_code']['precio_b2b'] + '"/> Precio B to B ' + response['bar_code']['precio_b2b'] +
+                            '<br> Precio real <input type="number" id="' + response['bar_code']['upc'] + '-precio-real" oninput="actualizar_subtotal($(this).attr(\'id\'), \'-precio-real\')" value="0" step="0.01">' +
+                            '<br> Subtotal: <span id="' + response['bar_code']['upc'] + '-subtotal"></span>' +
+                            '</div>');
+                        $('#contenido').append(e);
+                        $('#cantidad-global').val(1)
+                        num_divs = num_divs + 1
+                    }
+
+                },
+            });
+
+        }
+    </script>
+{% endblock %}

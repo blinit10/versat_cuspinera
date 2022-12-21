@@ -79,7 +79,7 @@ class ComponenteProductoFactura(models.Model):
     factura = models.ForeignKey(Factura, on_delete=models.CASCADE, related_name='productos_factura', null=True,
                                 blank=True)
     almacen = models.ForeignKey('configuracion.Almacen', on_delete=models.CASCADE, related_name='componentes_almacen')
-    producto = models.ForeignKey('inventario.Producto', on_delete=models.CASCADE, related_name='componentes_producto')
+    producto = models.ForeignKey('inventario.Producto', on_delete=models.PROTECT, related_name='componentes_producto')
     concepto = models.CharField(max_length=255, choices=CONCEPTO_CHOICES)
     cantidad = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     recargo = models.FloatField(default=0)

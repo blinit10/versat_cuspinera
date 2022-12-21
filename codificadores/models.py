@@ -75,7 +75,7 @@ class CuentaBancaria(models.Model):
 
 
     def __str__(self):
-        return '{}'.format(self.nombre)
+        return '{} - {}'.format(self.cuenta, self.nombre)
 
     class Meta:
         verbose_name = 'Cuenta Bancaria'

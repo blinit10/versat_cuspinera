@@ -1,8 +1,61 @@
 {% extends 'admin/change_list.html' %}
 {% load static %}
+{% block extrahead %}
+    {{ block.super }}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <style>
+        .modo-catalogo {
+            opacity: 0;
+            visibility: hidden;
+            -webkit-transition: visibility 0.2s linear,
+            opacity 0.2s linear;
+            -moz-transition: visibility 0.2s linear,
+            opacity 0.2s linear;
+            -o-transition: visibility 0.2s linear,
+            opacity 0.2s linear;
+        {#display: none !important;#}
+        }
+
+        .modo-catalogo-columna {
+            display: none;
+        }
+
+        .modo-catalogo-contenido {
+            transition-duration: 0.5s;
+            position: absolute;
+            margin: 0;
+            top: 0;
+            padding: 0;
+            left: 0;
+            width: 100%;
+        {#-webkit-transition: visibility 0.2s linear,#}{#opacity 0.2s linear;#}{#-moz-transition: visibility 0.2s linear,#}{#opacity 0.2s linear;#}{#-o-transition: visibility 0.2s linear,#}{#opacity 0.2s linear;#}{#display: none !important;#}
+        }
+
+        .modo-catalogo-contenido td {
+            font-size: 30px !important;
+            line-height: 45px;
+        }
+
+        .modo-catalogo-contenido .text {
+            font-size: 20px;
+        }
+
+
+        .modo-catalogo-img {
+            width: 350px !important;
+            height: 250px !important;
+        }
+    </style>
+{% endblock %}
 {% block object-tools %}
     <ul class="object-tools">
         <li>
+            <a style="margin-right: 5px;display: block;float: left;padding: 3px 12px;background: var(--object-tools-bg);
+            color: var(--object-tools-fg); font-weight: 400;font-size: 11px; text-transform: uppercase;
+             letter-spacing: 0.5px; cursor: pointer"
+               onclick="modo_catalogo()">
+                Modo Catálogo
+            </a>
             <a href="{% url 'actualizar_sistema' %}" class="addlink">
                 Actualizar sistema
             </a>
@@ -11,5 +64,89 @@
 {% endblock %}
 
 {% block footer %}
+    <script>
+        function modo_catalogo() {
+            document.getElementById('header').classList.add("modo-catalogo");
+            document.getElementById('changelist-filter').classList.add("modo-catalogo");
+            document.getElementById('toggle-nav-sidebar').classList.add("modo-catalogo");
+            document.getElementById('toolbar').classList.add("modo-catalogo");
+            document.getElementById('nav-sidebar').classList.add("modo-catalogo");
+            document.getElementById('action-toggle').classList.add("modo-catalogo");
+            document.getElementsByClassName('breadcrumbs')[0].classList.add("modo-catalogo");
+            document.getElementsByClassName('column-sku')[0].classList.add("modo-catalogo-columna");
+            document.getElementsByClassName('column-upc')[0].classList.add("modo-catalogo-columna");
+            document.getElementsByClassName('column-marca')[0].classList.add("modo-catalogo-columna");
+            document.getElementsByClassName('object-tools')[0].classList.add("modo-catalogo");
+            document.getElementsByClassName('actions')[0].classList.add("modo-catalogo");
+            document.getElementsByClassName('paginator')[0].classList.add("modo-catalogo");
+            for (let i = 0; i < document.getElementsByClassName('action-select').length; i++) {
+                document.getElementsByClassName('action-select')[i].classList.add("modo-catalogo");
+            }
+            for (let i = 0; i < document.getElementsByClassName('field-sku').length; i++) {
+                document.getElementsByClassName('field-sku')[i].classList.add("modo-catalogo-columna");
+            }
+            for (let i = 0; i < document.getElementsByClassName('field-upc').length; i++) {
+                document.getElementsByClassName('field-upc')[i].classList.add("modo-catalogo-columna");
+            }
+            for (let i = 0; i < document.getElementsByClassName('field-marca').length; i++) {
+                document.getElementsByClassName('field-marca')[i].classList.add("modo-catalogo-columna");
+            }
+            for (let i = 0; i < document.getElementsByTagName('h1').length; i++) {
+                document.getElementsByTagName('h1')[i].classList.add("modo-catalogo");
+            }
+            document.getElementById('changelist-form').classList.add("modo-catalogo-contenido");
+            for (let i = 0; i < document.getElementsByTagName('img').length; i++) {
+                document.getElementsByTagName('img')[i].classList.add("modo-catalogo-img");
+            }
+
+
+        }
+
+        function bindKeyup() {
+            $(document).bind('keyup', function (e) {
+                if (e.which == 83) {
+                    document.getElementById('header').classList.remove("modo-catalogo");
+                    document.getElementById('changelist-filter').classList.remove("modo-catalogo");
+                    document.getElementById('toggle-nav-sidebar').classList.remove("modo-catalogo");
+                    document.getElementById('toolbar').classList.remove("modo-catalogo");
+                    document.getElementById('nav-sidebar').classList.remove("modo-catalogo");
+                    document.getElementById('action-toggle').classList.remove("modo-catalogo");
+                    document.getElementsByClassName('breadcrumbs')[0].classList.remove("modo-catalogo");
+                    document.getElementsByClassName('object-tools')[0].classList.remove("modo-catalogo");
+                    document.getElementsByClassName('actions')[0].classList.remove("modo-catalogo");
+                    document.getElementsByClassName('paginator')[0].classList.remove("modo-catalogo");
+                    document.getElementsByClassName('column-sku')[0].classList.remove("modo-catalogo-columna");
+                    document.getElementsByClassName('column-upc')[0].classList.remove("modo-catalogo-columna");
+                    document.getElementsByClassName('column-marca')[0].classList.remove("modo-catalogo-columna");
+                    for (let i = 0; i < document.getElementsByClassName('action-select').length; i++) {
+                        document.getElementsByClassName('action-select')[i].classList.remove("modo-catalogo");
+                    }
+                    for (let i = 0; i < document.getElementsByClassName('field-sku').length; i++) {
+                        document.getElementsByClassName('field-sku')[i].classList.remove("modo-catalogo-columna");
+                    }
+                    for (let i = 0; i < document.getElementsByClassName('field-upc').length; i++) {
+                        document.getElementsByClassName('field-upc')[i].classList.remove("modo-catalogo-columna");
+                    }
+                    for (let i = 0; i < document.getElementsByClassName('field-marca').length; i++) {
+                        document.getElementsByClassName('field-marca')[i].classList.remove("modo-catalogo-columna");
+                    }
+                    for (let i = 0; i < document.getElementsByTagName('h1').length; i++) {
+                        document.getElementsByTagName('h1')[i].classList.remove("modo-catalogo");
+                    }
+                    for (let i = 0; i < document.getElementsByTagName('img').length; i++) {
+                        document.getElementsByTagName('img')[i].classList.remove("modo-catalogo-img");
+                    }
+                    document.getElementById('changelist-form').classList.remove("modo-catalogo-contenido");
+                }
+            });
+        }
+
+        $("body").on("focus", ":input", function () {
+            $(document).unbind('keyup');
+        });
+        $("body").on("blur", ":input", function () {
+            bindKeyup();
+        });
+    </script>
 {% endblock %}
 

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from configuracion.models import Entidad, Moneda, Sucursal, DatosOrganizacion, Unidad, Area, Trabajador, Almacen, \
-    Custodio, Banco, Ejercicio, Periodo, ConceptoVenta
+    Custodio, Banco, Ejercicio, Periodo, ConceptoVenta, ProveedorPropio
 
 
 # InLines
@@ -9,12 +9,17 @@ class PeriodoInLine(admin.StackedInline):
     extra = 0
     min_num = 1
 
+class ProveedorPropioInLine(admin.StackedInline):
+    model = ProveedorPropio
+    extra = 0
+    min_num = 1
+
 # fin InLines
 # ModelAdmin
 # fin de ModelAdmin
 class EntidadAdmin(admin.ModelAdmin):
-    list_display = ['codigo', 'nombre', 'reeup']
-    list_display_links = ['codigo', 'nombre', 'reeup']
+    list_display = ['codigo', 'nombre']
+    list_display_links = ['codigo', 'nombre']
     search_fields = ['codigo', 'nombre', 'reeup', 'abreviatura', 'direccion', 'correo', 'telefono', 'nit', 'ircc',
                      'provincia', 'pais']
     search_help_text = 'Se buscará en codigo, nombre, reeup, abreviatura, direccion, correo, telefono, nit, ircc,' \
@@ -50,6 +55,8 @@ class DatosOrganizacionAdmin(admin.ModelAdmin):
             'fields': ('logotipo', 'miniatura')}),
     )
 
+    inlines = [ProveedorPropioInLine]
+
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
             return self.readonly_fields + ['key', 'server', 'test']
@@ -57,6 +64,7 @@ class DatosOrganizacionAdmin(admin.ModelAdmin):
 
 
 class UnidadAdmin(admin.ModelAdmin):
+    prepopulated_fields = {'codigo':('reeup',)}
     list_display = ['codigo', 'nombre', 'correo', 'direccion']
     list_display_links = ['codigo', 'nombre', 'correo', 'direccion']
 

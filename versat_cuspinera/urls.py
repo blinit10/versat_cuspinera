@@ -16,15 +16,13 @@ Including another URLconf
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-
-from inventario.views import iframe_test
 from versat_cuspinera import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('configuracion/', include('configuracion.urls')),
     path('inventario/', include('inventario.urls')),
-    path('test', iframe_test, name='iframe_test'),
+    path('facturacion/', include('facturacion.urls')),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 admin.site.site_header = 'Versat Y - Panel de Control'
 admin.site.site_title = "Versat Y"

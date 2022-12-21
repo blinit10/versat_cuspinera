@@ -18,6 +18,7 @@ class DatosOrganizacion(models.Model):
     #cfg for connecting with the diplomarket api
     key = models.CharField(max_length=800)
     server = models.CharField(max_length=800)
+    # ruta_stream = models.CharField(max_length=600, verbose_name='Dirección de transmisión de video', default="http://192.168.43.1:8080/video")
     test = models.BooleanField(verbose_name='Entorno de prueba')
     bill_format = models.CharField(max_length=255, verbose_name='Formato para nombrar facturas')
     bill_number = models.IntegerField(default=0, verbose_name='Número de factura')
@@ -115,7 +116,7 @@ class Custodio(models.Model):
 class Entidad(models.Model):
     codigo = models.CharField(max_length=255, verbose_name='Código', unique=True, primary_key=True)
     nombre = models.CharField(max_length=255)
-    reeup = models.CharField(max_length=255, unique=True)
+    reeup = models.CharField(max_length=255, unique=True, blank=True, null=True, help_text='Opcional')
     abreviatura = models.CharField(null=True, blank=True, max_length=255, help_text='Opcional')
     direccion = models.TextField(verbose_name='Dirección', blank=True, null=True, help_text='Opcional')
     correo = models.EmailField(null=True, blank=True, help_text='Opcional')
@@ -215,3 +216,15 @@ class ConceptoVenta(models.Model):
     class Meta:
         verbose_name = 'Concepto de venta'
         verbose_name_plural = '11 - Conceptos de venta'
+
+class ProveedorPropio(models.Model):
+    cfg = models.ForeignKey(DatosOrganizacion, on_delete=models.CASCADE, related_name='proveedores_cfg')
+    nombre = models.CharField(max_length=255)
+
+    def __str__(self):
+        return '{}'.format(self.nombre)
+
+    class Meta:
+        verbose_name = 'Proveedor propio de la empresa'
+        verbose_name_plural = 'Proveedores propios de la empresa'
+
