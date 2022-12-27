@@ -8,7 +8,8 @@ from django.contrib import admin
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
-
+import locale
+locale.setlocale(locale.LC_ALL, '')
 from codificadores.models import CuentaBancaria
 from configuracion.models import DatosOrganizacion, Moneda
 from facturacion.exportador import render_pdf_view
@@ -100,6 +101,9 @@ from datetime import date
 def export_pdf(modeladmin, request, queryset):
     for bill in queryset:
         cfg = DatosOrganizacion.objects.all()[0]
+        bill.subtotal_productos = f"{bill.subtotal_productos:,.2f}"
+        bill.subtotal_servicios = f"{bill.subtotal_servicios:,.2f}"
+        bill.total = f"{bill.total:,.2f}"
         return render_pdf_view(request, json.dumps({}), cfg, bill)
 
 
