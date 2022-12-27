@@ -54,17 +54,6 @@ def actualizar_componente(factura, componente, producto):
     componente.descuento = 0
 
 def facturar(request):
-    # 'ci': ['96100808269']
-    # 'talon': ['001']
-    # 'moneda': ['USD::24,0::otras']
-    # 'fecha': ['2022-12-21T08:39']
-    # 'cuenta-bancaria': ['0524145000171216']
-    # 'forma': ['Tranferencia']
-    # 'operacion': ['1']
-    # 'cantidad': ['1']
-    # '0078000002744-precio': ['0.99']
-    # '0078000001969-precio': ['0.8']#
-    print(request.POST)
     try:
         comercial = Comercial.objects.get(ci=request.POST['ci'])
     except:

@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # InLines
-from facturacion.actions import aprove, revert, export
+from facturacion.actions import aprove, revert, export, export_pdf
 from facturacion.models import Talon, ComponenteProductoFactura, ComponenteServicioFactura, Factura
 
 
@@ -56,7 +56,7 @@ class FacturaAdmin(admin.ModelAdmin):
     list_filter = ['talon', 'entidad', 'moneda', 'fecha', 'comercial', 'cuenta', 'forma', 'operacion', 'aprobada']
     readonly_fields = ['total', 'subtotal_productos', 'subtotal_servicios', 'aprobada', 'faltantes']
     inlines = [ComponenteProductoFacturaInLine, ComponenteServicioFacturaInLine]
-    actions = [aprove, revert, export]
+    actions = [aprove, revert, export, export_pdf]
 
     def get_actions(self, request):
         actions = super(FacturaAdmin, self).get_actions(request)

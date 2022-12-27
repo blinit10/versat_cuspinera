@@ -1,13 +1,17 @@
+import json
 import os
 from datetime import datetime
 from pathlib import Path
-
 import requests
 from django.contrib import messages
 from django.contrib import admin
+from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.template.loader import render_to_string
 
 from codificadores.models import CuentaBancaria
 from configuracion.models import DatosOrganizacion, Moneda
+from facturacion.exportador import render_pdf_view
 from inventario.models import Producto
 
 
@@ -90,6 +94,13 @@ def excel_date(date1):
     temp = datetime(1899, 12, 30)
     delta = date1 - temp
     return float(delta.days) + (float(delta.seconds) / 86400)
+from datetime import date
+
+@admin.action(description='Generar PDF')
+def export_pdf(modeladmin, request, queryset):
+    for bill in queryset:
+        cfg = DatosOrganizacion.objects.all()[0]
+        return render_pdf_view(request, json.dumps({}), cfg, bill)
 
 
 @admin.action(description='Exportar facturas')
@@ -171,7 +182,7 @@ def export(modeladmin, request, queryset):
                 for service in bill.servicios_factura.all():
                     f.write("{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}\n".format('S', service.concepto,
                                                                                  service.servicio.codigo,
-                                                                                 '$',service.cantidad, service.recargo,
+                                                                                 '$', service.cantidad, service.recargo,
                                                                                  service.descuento, 0, 0, 0,
                                                                                  service.importe,
                                                                                  '', 0, 0))

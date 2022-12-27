@@ -147,6 +147,7 @@ class Banco(models.Model):
 
 
 class Sucursal(models.Model):
+    banco = models.ForeignKey(Banco, on_delete=models.CASCADE, related_name='sucursales_banco')
     numero = models.PositiveIntegerField(primary_key=True, default=1, verbose_name='Número',
                                          validators=[MinValueValidator(1)])
     direccion = models.TextField(verbose_name='Dirección')

@@ -1,0 +1,500 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="nofollow"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 0;
+
+        }
+
+        @media print {
+            body {
+                padding-top: 30px;
+                padding-left: 10px;
+                width: 100% !important;
+                background: #fff;
+                color: black;
+                font-family: 'Roboto', sans-serif;
+                line-height: 1.65;
+                -webkit-font-smoothing: antialiased;
+                -webkit-text-size-adjust: none;
+            }
+
+
+            /* ... the rest of the rules ... */
+        }
+
+        body {
+            width: 100% !important;
+            background: #fff;
+            color: black;
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+            -webkit-text-size-adjust: none;
+        }
+
+        table {
+            -pdf-keep-in-frame-mode: shrink;
+        }
+
+        #segundo-nivel {
+            border-collapse: collapse;
+            border-spacing: 0;
+
+        }
+    </style>
+    <style media="print">
+
+    </style>
+</head>
+<body>
+<div class="cabecera row">
+    <table>
+        <tr>
+            <td style="width: 150px">
+                <img src="{{ logotipo }}" alt="logotipo" width="150px" height="75px">
+            </td>
+            <td style="margin-right: 100px;width: 500px; padding-left: 0">
+                <div style="font-size: 13px; width: 500px">
+                    <span> Organismo: {{ cfg.organismo }}</span><br>
+                    <span> Empresa: {{ cfg.codigo }} {{ cfg.nombre }} IRCC: {{ cfg.ircc }}</span><br>
+                    <span> Unidad: {{ cfg.codigo }} {{ cfg.nombre }}</span><br>
+                    <span> Dirección: {{ cfg.direccion }}</span><br>
+                </div>
+            </td>
+            <td style="">
+                <img src="{{ logotipo }}" alt="logotipo" width="150px" height="75px">
+            </td>
+            <td style="padding-right: 10px; padding-left: 0">
+                <div style="font-size: 13px; ">
+                    <span> Fecha de Emisión: {{ bill.fecha.day }}/{{ bill.fecha.month }}/{{ bill.fecha.year }}</span><br><br>
+                    {% if bill.aprobada %}
+                        <span style="font-size: 25px; font-weight: bolder"> FACTURA</span><br>
+                        {% if bill.exportada_como != None %}
+                            <span> Número: {{ bill.exportada_como|slice:"-4" }}</span><br>
+                        {% else %}
+                            <span> Número: {{ bill.uuid|truncatechars:15 }}</span><br>
+                        {% endif %}
+                        {% if bill.entidad.nit %}
+                            <span> NIT: {{ bill.entidad.nit }}</span><br>
+                        {% endif %}
+                    {% else %}
+                        <span style="font-size: 25px; font-weight: bolder"> PRE-FACTURA</span><br>
+                        <span> Número: {{ bill.uuid|truncatechars:15 }}</span><br>
+                        {% if bill.entidad.nit %}
+                            <span> NIT: {{ bill.entidad.nit }}</span><br>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+
+
+    </table>
+    <table id="segundo-nivel">
+        <tr style="">
+            <td style="width: 150px">
+            </td>
+            <td style="margin-right: 100px;width: 500px;padding-bottom: -30px">
+                <div style="font-size: 15px; width: 500px; font-weight: bolder;">
+                    <span style=""> Ventas en {{ bill.moneda.siglas }}</span>
+                </div>
+            </td>
+            <td style="">
+            </td>
+            <td style="padding-right: 10px; padding-left: 0">
+            </td>
+        </tr>
+        <tr style="">
+            <td style="width: 300px ">
+                <div style="width: 300px">
+                    <span style=""> Código: {{ bill.entidad.codigo }}</span><br>
+                    <span style=""> Forma de pago: {{ bill.forma.forma }}</span><br>
+                    <span style=""> Dirección: </span>
+                </div>
+            </td>
+            <td style="margin-right: 100px; padding-left: 0">
+                <div style="width: 500px">
+                    <span style=""> Cliente: {{ bill.entidad.codigo }} {{ bill.entidad.nombre }}</span><br>
+                    <span style=""> NIT: {% if bill.entidad.nit %}{{ bill.entidad.nit }}{% endif %}</span><br>
+                    <span style="">{% if bill.entidad.direccion %}{{ bill.entidad.direccion }}{% endif %}</span>
+                </div>
+            </td>
+            <td style="">
+            </td>
+            <td style="padding-right: 10px; padding-left: 0">
+
+            </td>
+        </tr>
+    </table>
+    <table>
+        <tr style="font-size: 13px; padding-bottom: -30px">
+            <td>
+                <span style="font-weight: bolder"> Código</span>
+            </td>
+            <td>
+                <span style="font-weight: bolder"> Descripción</span>
+            </td>
+            <td>
+                <span style="font-weight: bolder"> UM</span>
+            </td>
+            <td>
+                <span style="font-weight: bolder"> Cantidad</span>
+            </td>
+            <td>
+                <span style="font-weight: bolder"> Precio</span>
+            </td>
+            <td>
+                <span style="font-weight: bolder"> Importe</span>
+            </td>
+        </tr>
+        {% for componente in bill.productos_factura.all %}
+            {% if bill.aprobada == True %}
+                {% if forloop.counter|divisibleby:10 %}
+                    </table>
+                    <pdf:nextpage/>
+                    <table>
+                        <tr>
+                            <td style="width: 150px">
+                                <img src="{{ logotipo }}" alt="logotipo" width="150px" height="75px">
+                            </td>
+                            <td style="margin-right: 100px;width: 500px; padding-left: 0">
+                                <div style="font-size: 13px; width: 500px">
+                                    <span> Organismo: {{ cfg.organismo }}</span><br>
+                                    <span> Empresa: {{ cfg.codigo }} {{ cfg.nombre }} IRCC: {{ cfg.ircc }}</span><br>
+                                    <span> Unidad: {{ cfg.codigo }} {{ cfg.nombre }}</span><br>
+                                    <span> Dirección: {{ cfg.direccion }}</span><br>
+                                </div>
+                            </td>
+                            <td style="">
+                                <img src="{{ logotipo }}" alt="logotipo" width="150px" height="75px">
+                            </td>
+                            <td style="padding-right: 10px; padding-left: 0">
+                                <div style="font-size: 13px; ">
+                                    <span> Fecha de Emisión: {{ bill.fecha.day }}/{{ bill.fecha.month }}/{{ bill.fecha.year }}</span><br><br>
+                                    {% if bill.aprobada %}
+                                        <span style="font-size: 25px; font-weight: bolder"> FACTURA</span><br>
+                                        <span> Número: {{ bill.exportada_como|slice:"-4" }}</span><br>
+                                        {% if bill.entidad.nit %}
+                                            <span> NIT: {{ bill.entidad.nit }}</span><br>
+                                        {% endif %}
+                                    {% else %}
+                                        <span style="font-size: 25px; font-weight: bolder"> PRE-FACTURA</span><br>
+                                        <span> Número: {{ bill.uuid|truncatechars:15 }}</span><br>
+                                        {% if bill.entidad.nit %}
+                                            <span> NIT: {{ bill.entidad.nit }}</span><br>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table>
+                    <tr style="font-size: 13px; padding-bottom: -30px">
+                        <td>
+                            <span style="font-weight: bolder"> Código</span>
+                        </td>
+                        <td>
+                            <span style="font-weight: bolder"> Descripción</span>
+                        </td>
+                        <td>
+                            <span style="font-weight: bolder"> UM</span>
+                        </td>
+                        <td>
+                            <span style="font-weight: bolder"> Cantidad</span>
+                        </td>
+                        <td>
+                            <span style="font-weight: bolder"> Precio</span>
+                        </td>
+                        <td>
+                            <span style="font-weight: bolder"> Importe</span>
+                        </td>
+                    </tr>
+                {% endif %}
+
+            {% else %}
+                {% if forloop.counter|divisibleby:15 %}
+                    </table>
+                    <pdf:nextpage/>
+                    <table>
+                        <tr>
+                            <td style="width: 150px">
+                                <img src="{{ logotipo }}" alt="logotipo" width="150px" height="75px">
+                            </td>
+                            <td style="margin-right: 100px;width: 500px; padding-left: 0">
+                                <div style="font-size: 13px; width: 500px">
+                                    <span> Organismo: {{ cfg.organismo }}</span><br>
+                                    <span> Empresa: {{ cfg.codigo }} {{ cfg.nombre }} IRCC: {{ cfg.ircc }}</span><br>
+                                    <span> Unidad: {{ cfg.codigo }} {{ cfg.nombre }}</span><br>
+                                    <span> Dirección: {{ cfg.direccion }}</span><br>
+                                </div>
+                            </td>
+                            <td style="">
+                                <img src="{{ logotipo }}" alt="logotipo" width="150px" height="75px">
+                            </td>
+                            <td style="padding-right: 10px; padding-left: 0">
+                                <div style="font-size: 13px; ">
+                                    <span> Fecha de Emisión: {{ bill.fecha.day }}/{{ bill.fecha.month }}/{{ bill.fecha.year }}</span><br><br>
+                                    {% if bill.aprobada %}
+                                        <span style="font-size: 25px; font-weight: bolder"> FACTURA</span><br>
+                                        <span> Número: {{ bill.exportada_como|slice:"-4" }}</span><br>
+                                        {% if bill.entidad.nit %}
+                                            <span> NIT: {{ bill.entidad.nit }}</span><br>
+                                        {% endif %}
+                                    {% else %}
+                                        <span style="font-size: 25px; font-weight: bolder"> PRE-FACTURA</span><br>
+                                        <span> Número: {{ bill.uuid|truncatechars:15 }}</span><br>
+                                        {% if bill.entidad.nit %}
+                                            <span> NIT: {{ bill.entidad.nit }}</span><br>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                    <tr style="font-size: 13px; padding-bottom: -30px">
+                        <td>
+                            <span style="font-weight: bolder"> Código</span>
+                        </td>
+                        <td>
+                            <span style="font-weight: bolder"> Descripción</span>
+                        </td>
+                        <td>
+                            <span style="font-weight: bolder"> UM</span>
+                        </td>
+                        <td>
+                            <span style="font-weight: bolder"> Cantidad</span>
+                        </td>
+                        <td>
+                            <span style="font-weight: bolder"> Precio</span>
+                        </td>
+                        <td>
+                            <span style="font-weight: bolder"> Importe</span>
+                        </td>
+                    </tr>
+                {% endif %}
+            {% endif %}
+            <tr style="padding-bottom: -30px">
+                <td>
+                    <span style=""> {{ componente.producto.sku }}</span>
+                </td>
+                <td>
+                    <span style=""> {{ componente.producto.nombre }}</span>
+                </td>
+                <td>
+                    <span style=""> {{ componente.producto.um }}</span>
+                </td>
+                <td>
+                    <span style=""> {{ componente.cantidad }}</span>
+                </td>
+                <td>
+                    <span style=""> {{ componente.precio }}</span>
+                </td>
+                <td>
+                    <span style=""> {{ componente.settled_import }}</span>
+                </td>
+            </tr>
+        {% endfor %}
+    <tr style="font-size: 13px;padding-bottom: -30px">
+        <td>
+        </td>
+        <td>
+        </td>
+        <td>
+        </td>
+        <td>
+        </td>
+        <td>
+            <span>Subtotal productos</span>
+        </td>
+        <td>
+            <span style="font-weight: bolder"> {{ bill.subtotal_productos }}</span>
+        </td>
+    </tr>
+    {% for componente in bill.servicios_factura.all %}
+        <tr style="padding-bottom: -30px">
+            <td>
+                <span style=""> {{ componente.servicio.codigo }}</span>
+            </td>
+            <td>
+                <span style=""> {{ componente.servicio.descripcion }}</span>
+            </td>
+            <td>
+                <span style=""> $ </span>
+            </td>
+            <td>
+                <span style=""> {{ componente.cantidad }}</span>
+            </td>
+            <td>
+                <span style=""> {{ componente.importe }}</span>
+            </td>
+            <td>
+                <span style=""> {{ componente.settled_import }}</span>
+            </td>
+        </tr>
+    {% endfor %}
+    <tr style="font-size: 13px;padding-bottom: -30px">
+        <td>
+        </td>
+        <td>
+        </td>
+        <td>
+        </td>
+        <td>
+        </td>
+        <td>
+            <span>Subtotal servicios</span>
+        </td>
+        <td>
+            <span style="font-weight: bolder"> {{ bill.subtotal_servicios }}</span>
+        </td>
+    </tr>
+    <tr style="font-size: 13px;">
+        <td style="font-weight: bolder">
+            <span>Comentarios</span>
+        </td>
+        <td>
+            {% if bill.nota %} {{ bill.nota }}{% endif %}
+        </td>
+        <td>
+        </td>
+        <td>
+        </td>
+        <td>
+            <span>Total Factura {{ bill.moneda.siglas }}</span>
+        </td>
+        <td>
+            <span style="font-weight: bolder"> {{ bill.total }}</span>
+        </td>
+    </tr>
+    </table>
+    {% if bill.aprobada == True %}
+        <table>
+        <tr style="font-size: 13px;padding-bottom: -30px">
+            <td style="font-size: 15px;font-weight: bolder">
+                <span>Páguese {{ bill.moneda.siglas }} a {{ cfg.nombre }} Cuenta: {{ bill.cuenta.cuenta }}
+                    Sucursal: {{ bill.cuenta.sucursal.numero }} del {{ bill.cuenta.sucursal.banco.nombre }}</span>
+            </td>
+
+        </tr>
+    </table>
+    <table>
+        <tr style="font-size: 13px;font-weight: bolder;padding-bottom: -30px">
+            <td>
+                <span>Realizada por</span>
+            </td>
+            <td>
+                <span>Transportado por</span>
+            </td>
+            <td>
+                <span>Recibido por</span>
+            </td>
+            <td>
+                <span>Entregada por</span>
+            </td>
+            <td>
+                <span>Contabilizada por</span>
+            </td>
+        </tr>
+        <tr style="font-size: 13px;padding-bottom: -30px">
+            <td>
+                <span>{{ bill.comercial.nombres_apellidos }}</span>
+            </td>
+            <td>
+                <span>Nombre: __________________</span>
+            </td>
+            <td>
+                <span>Nombre: __________________</span>
+            </td>
+            <td>
+                <span>Nombre: __________________</span>
+            </td>
+            <td>
+                <span>{{ bill.comercial.nombres_apellidos }}</span>
+            </td>
+        </tr>
+        <tr style="font-size: 13px;padding-bottom: -30px">
+            <td>
+                <span>{{ bill.comercial.cargo }}</span>
+            </td>
+            <td>
+                <span>CH: _______   Lic: _______</span>
+            </td>
+            <td>
+                <span>Cargo: __________________</span>
+            </td>
+            <td>
+                <span>Firma: _______ Fecha: __/__/____</span>
+            </td>
+            <td>
+                <span>Firma: _______ Fecha: __/__/____</span>
+            </td>
+        </tr>
+        <tr style="font-size: 13px;padding-bottom: -30px">
+            <td>
+                <span>Firma: _______ Fecha: __/__/____</span>
+            </td>
+            <td>
+                <span>CI: _______   Fecha: __/__/____</span>
+            </td>
+            <td>
+                <span>CI: _______   Fecha: __/__/____</span>
+            </td>
+            <td>
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr style="font-size: 13px;padding-bottom: -30px">
+            <td>
+            </td>
+            <td>
+                <span>Firma: _______ </span>
+            </td>
+            <td>
+                <span>Firma: _______ </span>
+            </td>
+            <td>
+            </td>
+            <td>
+            </td>
+        </tr>
+    </table>
+    {% else %}
+        <table style="text-align: center">
+        <tr style="font-size: 13px;padding-bottom: -30px">
+            <td style="font-size: 15px;font-weight: bolder">
+                <span>INFO: Este documento no es una factura</span>
+            </td>
+
+        </tr>
+    </table>
+    {% endif %}
+</div>
+
+<div class="pie">
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+
+<script src=https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+</body>
+</html>
