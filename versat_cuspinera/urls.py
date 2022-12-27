@@ -24,5 +24,5 @@ urlpatterns = [
     path('inventario/', include('inventario.urls')),
     path('facturacion/', include('facturacion.urls')),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-admin.site.site_header = 'Versat Y - Panel de Control'
-admin.site.site_title = "Versat Y"
+admin.site.site_header = 'contaBLe Cuspinera- Panel de Control'
+admin.site.site_title = "contaBLe Cuspinera"

@@ -71,6 +71,13 @@ class FacturaAdmin(admin.ModelAdmin):
                     'aprobada', 'subtotal_servicios', 'subtotal_productos', 'total', 'backup_bill', 'faltantes', 'nota']
         return self.readonly_fields
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        nombres_apellidos = request.user.first_name + " " + request.user.last_name
+        return qs.filter(comercial__nombres_apellidos=nombres_apellidos)
+
     class Media:
         js = (
             '//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js',  # jquery
