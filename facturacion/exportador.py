@@ -40,7 +40,7 @@ def render_pdf_view(request, lista, cfg, bill):
     # context = {'lista': json.loads(lista), 'imagen':str(settings.STATIC_ROOT) + '/../../static/logo_empresa.png',
     #            'total':cfg}
     context = {'lista': json.loads(lista), 'cfg': cfg,
-               'logotipo': str(settings.MEDIA_ROOT) + '\\' + str(cfg.logotipo).replace('/', '\\'), 'bill':bill}
+               'logotipo': str(settings.MEDIA_ROOT) + '/' + str(cfg.logotipo).replace('\\', '/'), 'bill':bill}
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="' + str(bill.uuid) + '".pdf"'
     template = get_template(template_path)
