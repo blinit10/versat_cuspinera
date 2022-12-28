@@ -2,6 +2,8 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
+from wsgiref.util import FileWrapper
+
 import requests
 from django.contrib import messages
 from django.contrib import admin
@@ -110,7 +112,8 @@ def export_pdf(modeladmin, request, queryset):
 @admin.action(description='Exportar facturas')
 def export(modeladmin, request, queryset):
     for bill in queryset:
-        if True:
+        if bill.aprobada == True:
+            lines = []
             cfg = DatosOrganizacion.objects.all()[0]
             cfg.bill_number = cfg.bill_number + 1
             cfg.save()
@@ -119,77 +122,78 @@ def export(modeladmin, request, queryset):
                 numer_of_zeroes = numer_of_zeroes + '0'
             bill_name = cfg.bill_format + str(numer_of_zeroes) \
                         + str(cfg.bill_number) + '.Fac'
-            dir_path = Path('{}'.format(cfg.bills_dir))
-            if not dir_path.is_dir():
-                if not os.path.exists('{}'.format(dir_path)):
-                    os.mkdir('{}'.format(dir_path))
-            with open(dir_path.joinpath(dir_path.joinpath(bill_name)), 'w') as f:
-                fecha = str(excel_date(datetime(year=bill.fecha.year, month=bill.fecha.month,
-                                                day=bill.fecha.day, hour=0, minute=0, second=0)))
-                if bill.moneda.tipo == 'contable':
-                    mc_currency = bill.moneda.nombre
-                    mc_account = bill.cuenta.cuenta
-                    om_currency = ' '
-                    om_account = ' '
-                else:
-                    om_currency = bill.moneda
-                    om_account = bill.cuenta.cuenta
-                    mc_currency = 'CUBAN PESO'
-                    mc_account = ' '
-                f.write("Numero={}\n".format(str(bill_name).replace('.Fac', '')))
-                if mc_currency == ' ':
-                    f.write("MC={}\n".format(Moneda.objects.filter(tipo='contable')[0]))
-                else:
-                    f.write("MC={}\n".format(mc_currency))
-                if om_currency == ' ':
-                    f.write("OM={}\n".format(''))
-                else:
-                    f.write("OM={}\n".format(om_currency.nombre))
-                f.write("Fecha={}\n".format(fecha[:len(fecha) - 2]))
-                f.write("Entidad={}\n".format(bill.entidad.codigo))
-                f.write("Concepto={}\n".format(bill.concepto))
-                f.write("Comercial={}\n".format(bill.comercial.nombres_apellidos))
-                f.write("CtaBancoMC={}\n".format(mc_account))
-                f.write("CtaBancoOM={}\n".format(om_account))
-                f.write("Forma={}\n".format(bill.forma.forma))
-                f.write("Operacion={}\n".format(bill.operacion.descripcion))
-                f.write("Observacion={}\n".format(bill.nota))
-                f.write("MA={}\n".format(' '))
-                f.write("CtoArancel={}\n".format(' '))
-                f.write("PorcientoAra={}\n".format('0'))
-                f.write("Talon={}\n".format(bill.talon.numero_serie))
-                f.write("Contrato={}\n".format(''))
-                f.write("VtaCadena={}\n".format('0'))
-                f.write("NomHecho={}\n".format(bill.comercial.nombres_apellidos))
-                f.write("CargoHecho={}\n".format(bill.comercial.cargo))
-                f.write("CIHecho={}\n".format(bill.comercial.ci))
-                f.write("NomJA={}\n".format(' '))
-                f.write("CIJA={}\n".format(' '))
-                f.write("NomTra={}\n".format(' '))
-                f.write("Chapa={}\n".format(' '))
-                f.write("LicTra={}\n".format(' '))
-                f.write("CITra={}\n".format(' '))
-                f.write("NomCliente={}\n".format(' '))
-                f.write("CargoCliente={}\n".format(' '))
-                f.write("CICliente={}\n".format(' '))
-                f.write("[Propiedades]\n")
-                f.write("\n")
-                f.write("[Detalle]\n")
-                for product in bill.productos_factura.all():
-                    f.write(
-                        "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}\n".format(product.almacen.codigo, product.concepto,
-                                                                             product.producto.sku, product.producto.um,
-                                                                             product.cantidad, product.recargo,
-                                                                             product.descuento, 0, 0, 0,
-                                                                             product.importe,
-                                                                             '', product.precio, 0))
-                for service in bill.servicios_factura.all():
-                    f.write("{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}\n".format('S', service.concepto,
-                                                                                 service.servicio.codigo,
-                                                                                 '$', service.cantidad, service.recargo,
-                                                                                 service.descuento, 0, 0, 0,
-                                                                                 service.importe,
-                                                                                 '', 0, 0))
-                f.write("[PieFirma]\n")
+            file_name = '{}'.format(bill_name)
+            fecha = str(excel_date(datetime(year=bill.fecha.year, month=bill.fecha.month,
+                                            day=bill.fecha.day, hour=0, minute=0, second=0)))
+            if bill.moneda.tipo == 'contable':
+                mc_currency = bill.moneda.nombre
+                mc_account = bill.cuenta.cuenta
+                om_currency = ' '
+                om_account = ' '
+            else:
+                om_currency = bill.moneda
+                om_account = bill.cuenta.cuenta
+                mc_currency = 'CUBAN PESO'
+                mc_account = ' '
+            lines.append("Numero={}\n".format(str(bill_name).replace('.Fac', '')))
+            if mc_currency == ' ':
+                lines.append("MC={}\n".format(Moneda.objects.filter(tipo='contable')[0]))
+            else:
+                lines.append("MC={}\n".format(mc_currency))
+            if om_currency == ' ':
+                lines.append("OM={}\n".format(''))
+            else:
+                lines.append("OM={}\n".format(om_currency.nombre))
+            lines.append("Fecha={}\n".format(fecha[:len(fecha) - 2]))
+            lines.append("Entidad={}\n".format(bill.entidad.codigo))
+            lines.append("Concepto={}\n".format(bill.concepto))
+            lines.append("Comercial={}\n".format(bill.comercial.nombres_apellidos))
+            lines.append("CtaBancoMC={}\n".format(mc_account))
+            lines.append("CtaBancoOM={}\n".format(om_account))
+            lines.append("Forma={}\n".format(bill.forma.forma))
+            lines.append("Operacion={}\n".format(bill.operacion.descripcion))
+            lines.append("Observacion={}\n".format(bill.nota))
+            lines.append("MA={}\n".format(' '))
+            lines.append("CtoArancel={}\n".format(' '))
+            lines.append("PorcientoAra={}\n".format('0'))
+            lines.append("Talon={}\n".format(bill.talon.numero_serie))
+            lines.append("Contrato={}\n".format(''))
+            lines.append("VtaCadena={}\n".format('0'))
+            lines.append("NomHecho={}\n".format(bill.comercial.nombres_apellidos))
+            lines.append("CargoHecho={}\n".format(bill.comercial.cargo))
+            lines.append("CIHecho={}\n".format(bill.comercial.ci))
+            lines.append("NomJA={}\n".format(' '))
+            lines.append("CIJA={}\n".format(' '))
+            lines.append("NomTra={}\n".format(' '))
+            lines.append("Chapa={}\n".format(' '))
+            lines.append("LicTra={}\n".format(' '))
+            lines.append("CITra={}\n".format(' '))
+            lines.append("NomCliente={}\n".format(' '))
+            lines.append("CargoCliente={}\n".format(' '))
+            lines.append("CICliente={}\n".format(' '))
+            lines.append("[Propiedades]\n")
+            lines.append("\n")
+            lines.append("[Detalle]\n")
+            for product in bill.productos_factura.all():
+                lines.append(
+                    "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}\n".format(product.almacen.codigo, product.concepto,
+                                                                         product.producto.sku, product.producto.um,
+                                                                         product.cantidad, product.recargo,
+                                                                         product.descuento, 0, 0, 0,
+                                                                         product.importe,
+                                                                         '', product.precio, 0))
+            for service in bill.servicios_factura.all():
+                lines.append(
+                    "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}\n".format('S', service.concepto,
+                                                                         service.servicio.codigo,
+                                                                         '$', service.cantidad, service.recargo,
+                                                                         service.descuento, 0, 0, 0,
+                                                                         service.importe,
+                                                                         '', 0, 0))
+            lines.append("[PieFirma]\n")
             bill.exportada_como = bill_name
             bill.save()
+            response_content = ''.join(lines)
+            response = HttpResponse(response_content, content_type="text/plain,charset=utf8")
+            response['Content-Disposition'] = 'attachment; filename={0}'.format(file_name)
+            return response
