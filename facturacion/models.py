@@ -39,6 +39,8 @@ class Factura(models.Model):
     entidad = models.ForeignKey('configuracion.Entidad', on_delete=models.CASCADE, related_name='facturas_entidad')
     moneda = models.ForeignKey('configuracion.Moneda', on_delete=models.CASCADE, related_name='facturas_moneda')
     tasa = models.FloatField(default=24)
+    almacen = models.ForeignKey('configuracion.Almacen', on_delete=models.CASCADE, related_name='orden_almacen',
+                                default='0002')
     fecha = models.DateField(default=datetime.now)
     concepto = models.CharField(max_length=255, default='004', choices=CONCEPTO_CHOICES)
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
@@ -63,6 +65,10 @@ class Factura(models.Model):
     def __str__(self):
         return '{}'.format(self.uuid)
 
+    def save(self, *args, **kwargs):
+
+        super(Factura, self).save(*args, **kwargs)
+
     class Meta:
         verbose_name = 'Factura'
         verbose_name_plural = '02 - Facturas'
@@ -72,15 +78,14 @@ class Factura(models.Model):
 class ComponenteProductoFactura(models.Model):
     CONCEPTO_CHOICES = (
         ('001', 'B to B'),
-        ('002', 'Online'),
-        ('003', 'Pago Anticipado'),
-        ('004', 'Pago en el extranjero'),
+        ('002', 'VENTA ONLINE'),
+        ('003', 'VENTA DIRECTA'),
     )
     factura = models.ForeignKey(Factura, on_delete=models.CASCADE, related_name='productos_factura', null=True,
                                 blank=True)
     almacen = models.ForeignKey('configuracion.Almacen', on_delete=models.CASCADE, related_name='componentes_almacen')
     producto = models.ForeignKey('inventario.Producto', on_delete=models.PROTECT, related_name='componentes_producto')
-    concepto = models.CharField(max_length=255, choices=CONCEPTO_CHOICES)
+    concepto = models.CharField(max_length=255, choices=CONCEPTO_CHOICES, null=True, blank=True)
     cantidad = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     recargo = models.FloatField(default=0)
     descuento = models.FloatField(default=0)
@@ -89,9 +94,14 @@ class ComponenteProductoFactura(models.Model):
     settled_import = models.FloatField(default=0)
 
     def __str__(self):
+
         return '{}'.format(self.producto.nombre)
 
     def save(self, *args, **kwargs):
+        self.almacen = self.factura.almacen
+        for item in self.CONCEPTO_CHOICES:
+            if item[1] == self.factura.operacion.descripcion:
+                self.concepto = item[0]
         self.factura.total = self.factura.total - self.settled_import
         self.factura.subtotal_productos = self.factura.subtotal_productos - self.settled_import
         subtotal = (self.precio + (self.precio * self.recargo / 100) - self.descuento) * self.cantidad

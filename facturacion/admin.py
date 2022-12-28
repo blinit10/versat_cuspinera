@@ -14,7 +14,7 @@ class ComponenteProductoFacturaInLine(admin.StackedInline):
     fieldsets = (
         ('Información Básica', {
             'fields': (
-                'almacen', 'producto', ('concepto', 'cantidad'))}),
+                ('producto', 'cantidad'),)}),
         ('Información Contable', {
             'fields': (
                 ('recargo', 'descuento',), ('importe', 'precio'),)}),

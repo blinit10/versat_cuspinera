@@ -4,15 +4,26 @@
     {{ block.super }}
 {% endblock %}
 {% block admin_change_form_document_ready %}
+
     {{ block.super }}
+    <script src="{% static 'facturacion/js/formset_handlers.js' %}"></script>
 {% endblock %}
 {% block submit_buttons_bottom %}
     {{ block.super }}
     <script>
-    $(document).ready(function () {
-       $('#id_uuid').css('border-color', 'transparent');
-       $('#id_uuid').css('font-weight', 'bolder');
-    });
+
+
+        $(document).ready(function () {
+            $('#id_uuid').css('border-color', 'transparent');
+            $('#id_uuid').css('font-weight', 'bolder');
+        });
+
+        $(document).on('DOMNodeInserted', function (e) {
+            if ($(e.target).hasClass('dynamic-productos_factura')) {
+                //element with .MyClass was inserted.
+                $(e.target)
+            }
+        });
     </script>
 
 {% endblock %}

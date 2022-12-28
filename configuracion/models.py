@@ -116,7 +116,7 @@ class Custodio(models.Model):
 class Entidad(models.Model):
     codigo = models.CharField(max_length=255, verbose_name='Código', unique=True, primary_key=True)
     nombre = models.CharField(max_length=255)
-    reeup = models.CharField(max_length=255, unique=True, blank=True, null=True, help_text='Opcional')
+    reeup = models.CharField(max_length=255, blank=True, null=True, help_text='Opcional')
     abreviatura = models.CharField(null=True, blank=True, max_length=255, help_text='Opcional')
     direccion = models.TextField(verbose_name='Dirección', blank=True, null=True, help_text='Opcional')
     correo = models.EmailField(null=True, blank=True, help_text='Opcional')
@@ -128,6 +128,32 @@ class Entidad(models.Model):
 
     def __str__(self):
         return '{}'.format(self.nombre)
+
+    def save(self, *args, **kwargs):
+        if len(self.codigo) == 0:
+            self.codigo = ' '
+        if len(self.nombre) == 0:
+            self.nombre = ' '
+        if len(self.reeup) == 0:
+            self.reeup = ' '
+        if len(self.abreviatura) == 0:
+            self.abreviatura = ' '
+        if len(self.direccion) == 0:
+            self.direccion = ' '
+        if len(self.correo) == 0:
+            self.correo = ' '
+        if len(self.telefono) == 0:
+            self.telefono = ' '
+        if len(self.nit) == 0:
+            self.nit = ' '
+        if len(self.ircc) == 0:
+            self.ircc = ' '
+        if len(self.provincia) == 0:
+            self.provincia = ' '
+        if len(self.pais) == 0:
+            self.pais = ' '
+        super(Entidad, self).save(*args, **kwargs)
+
 
     class Meta:
         verbose_name = 'Entidad/Persona Natural'

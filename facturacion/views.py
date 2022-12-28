@@ -53,6 +53,18 @@ def actualizar_componente(factura, componente, producto):
     componente.recargo = 0
     componente.descuento = 0
 
+def get_precios(request):
+    if request.GET['modo'] == '---------':
+        return JsonResponse(data={'precio': -1}, safe=False)
+    if request.GET['modo'] != 'VENTA ONLINE' and request.GET['modo'] != 'B to B':
+        return JsonResponse(data={'precio': -2}, safe=False)
+    if request.GET['modo'] == 'VENTA ONLINE':
+        sku = request.GET['sku']
+        return JsonResponse(data={'precio': Producto.objects.get(sku=sku).precio}, safe=False)
+    if request.GET['modo'] == 'B to B':
+        sku = request.GET['sku']
+        return JsonResponse(data={'precio': Producto.objects.get(sku=sku).precio_b2b}, safe=False)
+
 def facturar(request):
     try:
         comercial = Comercial.objects.get(ci=request.POST['ci'])

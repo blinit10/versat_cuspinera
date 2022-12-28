@@ -1,4 +1,6 @@
 from django.contrib import admin
+
+from configuracion.actions import exportar
 from configuracion.models import Entidad, Moneda, Sucursal, DatosOrganizacion, Unidad, Area, Trabajador, Almacen, \
     Custodio, Banco, Ejercicio, Periodo, ConceptoVenta, ProveedorPropio
 
@@ -18,12 +20,14 @@ class ProveedorPropioInLine(admin.StackedInline):
 # ModelAdmin
 # fin de ModelAdmin
 class EntidadAdmin(admin.ModelAdmin):
-    list_display = ['codigo', 'nombre']
-    list_display_links = ['codigo', 'nombre']
+    list_display = ['codigo', 'nombre', 'direccion', 'telefono']
+    list_display_links = ['codigo', 'nombre', 'direccion', 'telefono']
     search_fields = ['codigo', 'nombre', 'reeup', 'abreviatura', 'direccion', 'correo', 'telefono', 'nit', 'ircc',
                      'provincia', 'pais']
     search_help_text = 'Se buscará en codigo, nombre, reeup, abreviatura, direccion, correo, telefono, nit, ircc,' \
                        ' provincia, pais'
+    list_per_page = 100000
+    actions = [exportar,]
 
 
 class MonedaAdmin(admin.ModelAdmin):
