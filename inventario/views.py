@@ -26,7 +26,7 @@ def actualizar_sistema(request):
                     locations = locations + ", " + str(location['nombre'])
                 else:
                     locations = str(location['nombre'])
-            product = Producto(sku=json_product['sku'] or json_product['slug'], nombre=json_product['nombre'],
+            product = Producto(sku=json_product['sku'] or json_product['slug'], nombre=json_product['nombre_versat'],
                                precio=json_product['precio'],
                                precio_lb=json_product['precioxlibra'], um=json_product['um'] or 'No especificada',
                                proveedor=json_product['proveedor']['nombre'], marca=json_product['marca']['nombre'],
