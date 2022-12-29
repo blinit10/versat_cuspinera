@@ -130,27 +130,27 @@ class Entidad(models.Model):
         return '{}'.format(self.nombre)
 
     def save(self, *args, **kwargs):
-        if len(self.codigo) == 0:
+        if self.codigo == None:
             self.codigo = ' '
-        if len(self.nombre) == 0:
+        if self.nombre == None:
             self.nombre = ' '
-        if len(self.reeup) == 0:
+        if self.reeup == None:
             self.reeup = ' '
-        if len(self.abreviatura) == 0:
+        if self.abreviatura == None:
             self.abreviatura = ' '
-        if len(self.direccion) == 0:
+        if self.direccion == None:
             self.direccion = ' '
-        if len(self.correo) == 0:
+        if self.correo == None:
             self.correo = ' '
-        if len(self.telefono) == 0:
+        if self.telefono == None:
             self.telefono = ' '
-        if len(self.nit) == 0:
+        if self.nit == None:
             self.nit = ' '
-        if len(self.ircc) == 0:
+        if self.ircc == None:
             self.ircc = ' '
-        if len(self.provincia) == 0:
+        if self.provincia == None:
             self.provincia = ' '
-        if len(self.pais) == 0:
+        if self.pais == None:
             self.pais = ' '
         super(Entidad, self).save(*args, **kwargs)
 
